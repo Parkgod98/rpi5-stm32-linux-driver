@@ -1,0 +1,42 @@
+# Build outputs
+build/
+out/
+*.o
+*.ko
+*.mod
+*.mod.c
+*.symvers
+*.order
+*.dtbo
+*.dts.tmp
+
+# Kernel module generated files
+.Module.symvers
+modules.order
+Module.symvers
+.tmp_versions/
+.*.cmd
+
+# STM32 / IDE generated or local files
+Debug/
+Release/
+.settings/
+.metadata/
+*.launch
+*.log
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*~
+
+# Python helpers
+__pycache__/
+*.pyc
+.venv/
+
+# Local raw captures that should not be committed by accident
+results/tmp/
+*.bin
+*.pcap
