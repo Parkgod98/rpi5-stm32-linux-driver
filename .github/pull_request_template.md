@@ -1,31 +1,41 @@
-## Scope
+## 변경 내용
 
-<!-- Which roadmap phase / problem does this PR address? -->
-
-## What changed
+<!-- 무엇을 왜 바꿨는지 적습니다. -->
 
 -
 
-## Verification
+## 검증
 
-<!-- Include exact commands and actual hardware/software result. -->
+<!-- 실제 실행한 명령과 결과만 적습니다. -->
 
 ```text
 
 ```
 
-## Evidence
+## HW / 환경 확인
 
-<!-- Link logs/results/screenshots/measurements when applicable. -->
+<!-- 실제로 확인한 보드, OS, Kernel, 버스, 핀, 장비 상태 등을 적습니다. 추측값은 적지 않습니다. -->
 
 -
 
-## Checklist
+## 남은 제약
 
-- [ ] Scope matches the current roadmap phase.
-- [ ] `docs/CURRENT_STATUS.md` is updated.
-- [ ] Relevant design/test documentation is updated.
-- [ ] No unverified feature is described as complete.
-- [ ] Hardware-dependent values were confirmed rather than guessed.
-- [ ] Error paths were considered for kernel/firmware changes.
-- [ ] I can explain the changed path without relying on generated text.
+<!-- 아직 구현하지 않았거나 검증하지 못한 내용을 적습니다. -->
+
+-
+
+## 참고
+
+<!-- 다음 Phase, 의존 PR, 면접 포인트 등 -->
+
+-
+
+## 체크리스트
+
+- [ ] 현재 Roadmap Phase와 PR 범위가 일치합니다.
+- [ ] `docs/CURRENT_STATUS.md`를 최신 상태로 갱신했습니다.
+- [ ] 관련 설계·테스트 문서를 함께 갱신했습니다.
+- [ ] 검증하지 않은 기능을 완료했다고 적지 않았습니다.
+- [ ] HW 의존 값은 실제 장비/문서/OS 출력으로 확인했습니다.
+- [ ] Kernel/Firmware 변경은 오류 경로까지 확인했습니다.
+- [ ] 이번 변경의 핵심 동작을 코드 없이 설명할 수 있습니다.
