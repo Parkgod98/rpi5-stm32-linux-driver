@@ -1,73 +1,72 @@
-# Performance Plan
+# 성능 측정 계획
 
-Performance work starts only after correctness and fault handling are stable.
+Performance 최적화는 Correctness와 Fault Handling이 안정된 뒤 시작합니다.
 
-## Primary metrics
+## 주요 측정 지표
 
-For round-trip commands such as `ECHO`:
+`ECHO`와 같은 Round-trip Command에서 아래를 측정합니다.
 
-- total transactions
-- success count / success rate
-- p50 latency
-- p95 latency
-- p99 latency
-- maximum latency
-- timeout count
-- CRC/sequence error count
+- 전체 Transaction 수
+- 성공 횟수와 성공률
+- p50 Latency
+- p95 Latency
+- p99 Latency
+- 최대 Latency
+- Timeout Count
+- CRC / Sequence Error Count
 
-For at least one real operation such as `GET_STATUS`, collect the same latency distribution.
+`GET_STATUS`처럼 실제 기능 Command 최소 1개에서도 동일한 Latency Distribution을 수집합니다.
 
-## Test conditions
+## 기록해야 할 테스트 조건
 
-Record:
-- Raspberry Pi OS and kernel version
-- SPI clock/mode
-- protocol frame size
-- CPU load state
-- power source
-- firmware version
-- driver commit SHA
+- Raspberry Pi OS와 Kernel Version
+- SPI Clock / Mode
+- Protocol Frame Size
+- CPU Load 상태
+- 전원 공급 방식
+- Firmware Version
+- Driver Commit SHA
 
-## Baseline scenario
+## Baseline 측정
 
-1. idle system
-2. fixed SPI clock
-3. 10,000 ECHO transactions
-4. save raw sample or histogram-friendly output
-5. compute summary metrics reproducibly
+1. System Idle 상태
+2. 고정 SPI Clock
+3. `ECHO` 10,000회
+4. Raw Sample 또는 Histogram을 만들 수 있는 원본 결과 저장
+5. 동일한 Script로 Summary Metric 계산
 
-## Loaded scenario
+## CPU Load 조건
 
-Repeat while CPU load is applied, for example with an available stress tool. Do not introduce a dependency without documenting how it was installed.
+사용 가능한 Stress Tool로 CPU Load를 준 상태에서 같은 Test를 반복합니다. 새 Tool을 설치했다면 설치 방법도 문서화합니다.
 
-Compare:
-- success rate
-- p95/p99 tail latency
-- timeout/error behavior
+비교 항목:
+- 성공률
+- p95 / p99 Tail Latency
+- Timeout / Error 동작
 
 ## Tracing
 
-Use tracing to answer a question, not for decoration.
+Tracing Tool은 장식이 아니라 질문에 답하기 위해 사용합니다.
 
-Potential tools:
-- `perf stat` for process/system counters
-- ftrace tracepoints/function tracing around driver path where useful
-- kernel logs for error/timeout correlation
+사용 후보:
+- `perf stat` — Process/System Counter 확인
+- `ftrace` — 필요할 경우 Driver Path의 Function 또는 Tracepoint 확인
+- Kernel Log — Error/Timeout과 동작 시점 비교
 
-Questions tracing may answer:
-- Is tail latency dominated by userspace scheduling or SPI transaction time?
-- Does IRQ/event wakeup add unexpected delay?
-- Does CPU contention materially change latency?
+Tracing으로 확인할 질문 예시:
+- Tail Latency의 주요 원인이 userspace Scheduling인가, SPI Transaction인가?
+- IRQ/Event Wake-up이 예상보다 큰 Delay를 만드는가?
+- CPU Contention이 Latency에 실제 영향을 주는가?
 
-## Optimization policy
+## 최적화 원칙
 
-Do not optimize by increasing SPI clock first.
+첫 번째 최적화로 SPI Clock부터 올리지 않습니다.
 
-Preferred order:
-1. confirm correctness
-2. identify measured bottleneck
-3. change one variable
-4. rerun same benchmark
-5. record before/after result
+순서:
+1. Correctness 확인
+2. 실제 측정으로 병목 확인
+3. 한 번에 하나의 변수 변경
+4. 같은 Benchmark 재실행
+5. 변경 전/후 결과 기록
 
-No performance claim is allowed without a repeatable measurement.
+반복 가능한 측정 없이 성능이 좋아졌다고 기록하지 않습니다.

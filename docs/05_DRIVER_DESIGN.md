@@ -1,92 +1,93 @@
-# Linux Driver Design
+# Linux Driver 설계
 
-Status: design target. Implementation begins only after userspace SPI/protocol validation.
+현재 상태는 **설계 단계**입니다. userspace SPI와 Protocol 검증이 끝난 뒤에 구현을 시작합니다.
 
-## Driver type
+## Driver 종류
 
-Custom Linux SPI peripheral/protocol driver bound through Device Tree.
+Device Tree를 통해 Binding되는 STM32F103RB 기반 Device용 Custom Linux SPI Peripheral/Protocol Driver를 구현합니다.
 
-Not in scope: Raspberry Pi SPI controller driver.
+Raspberry Pi SPI Controller Driver 자체 구현은 범위에 포함하지 않습니다.
 
-## Planned lifecycle
+## 예정 Lifecycle
 
-### probe
-- obtain SPI device and configuration
-- acquire optional GPIO/IRQ descriptors
-- initialize locks/state/wait queue
-- verify device identity with `GET_INFO` if appropriate
-- register userspace interface (`miscdevice` preferred)
-- enable interrupt path only after state is ready
+### `probe()`
+- SPI Device와 설정 정보를 가져옵니다.
+- 필요하면 GPIO/IRQ Descriptor를 획득합니다.
+- Lock, State, Wait Queue를 초기화합니다.
+- 필요하다면 `GET_INFO`로 Device Identity를 확인합니다.
+- userspace Interface를 등록합니다. 초기안은 `miscdevice`입니다.
+- 내부 상태가 준비된 뒤 IRQ 경로를 활성화합니다.
 
-### remove
-- stop accepting new work
-- disable/free IRQ path as appropriate
-- wake blocked userspace with shutdown/error state
-- deregister miscdevice
-- release resources through managed APIs where practical
+### `remove()`
+- 새로운 작업 접수를 중단합니다.
+- IRQ 경로를 비활성화하고 필요한 Resource를 해제합니다.
+- 대기 중인 userspace가 있다면 Shutdown/Error 상태로 깨웁니다.
+- `miscdevice`를 해제합니다.
+- 가능한 Resource는 Managed API를 이용해 Lifecycle을 단순화합니다.
 
-## Internal layers
+## Driver 내부 계층
 
-1. **transport**: one SPI transfer/request-response primitive
-2. **protocol**: frame encode/decode, CRC, sequence, status mapping
-3. **device operations**: get info/status, set LED/period, echo
-4. **event path**: IRQ, event state, wait queue
-5. **UAPI**: read/ioctl/poll exposed to userspace
+1. **Transport**: 하나의 SPI Transfer 또는 Request/Response Primitive
+2. **Protocol**: Frame Encode/Decode, CRC, Sequence, Status Mapping
+3. **Device Operation**: GET_INFO, GET_STATUS, SET_LED, SET_PERIOD, ECHO
+4. **Event Path**: IRQ, Event State, Wait Queue
+5. **UAPI**: userspace에 노출하는 `read/ioctl/poll`
 
-Keeping these concerns separate should make testing/debugging easier.
+각 책임을 분리해 Test와 Debug가 한 계층씩 가능하도록 설계합니다.
 
-## Concurrency model
+## Concurrency 설계
 
-Initial design should serialize synchronous SPI transactions with a mutex unless evidence requires more concurrency. Correctness is more important than speculative parallelism.
+초기에는 동기식 SPI Transaction을 Mutex로 직렬화합니다. 실제 측정이나 요구사항이 더 높은 동시성을 요구하기 전까지는 Correctness를 우선합니다.
 
-State potentially shared with IRQ context must use an appropriate primitive; do not use a sleeping lock in hard IRQ context.
+IRQ Context와 공유하는 State에는 Context에 맞는 동기화 수단을 사용해야 합니다. Hard IRQ Context에서는 Sleep할 수 있는 Lock을 사용하지 않습니다.
 
-## Userspace interface
+## userspace Interface
 
-Preferred device node:
+목표 Device Node:
 
 `/dev/f103bridge`
 
-Candidate API:
-- `read()` for status or event data
-- `ioctl()` for typed control operations
-- `poll()` for asynchronous events
+API 후보:
+- `read()` — 상태 또는 Event Data 조회
+- `ioctl()` — Type이 명확한 제어 Operation
+- `poll()` — 비동기 Event 대기
 
-The final API should be small and stable. Do not expose kernel-private structures directly.
+최종 API는 작고 안정적으로 유지합니다. Kernel 내부 Structure를 그대로 userspace에 노출하지 않습니다.
 
-## Error mapping
+## Error Mapping
 
-Candidate errno mapping, subject to implementation review:
-- malformed userspace request -> `-EINVAL`
-- device not available/shutting down -> `-ENODEV`
-- timeout -> `-ETIMEDOUT`
-- CRC/protocol integrity failure -> `-EBADMSG` or suitable alternative
-- SPI transfer error -> propagated/normalized negative errno
+구현 전 후보이며 실제 구현 시 다시 검토합니다.
 
-Document actual choices when implemented.
+- 잘못된 userspace 요청 -> `-EINVAL`
+- Device가 없거나 Shutdown 중 -> `-ENODEV`
+- Timeout -> `-ETIMEDOUT`
+- CRC / Protocol 무결성 오류 -> `-EBADMSG` 또는 적절한 errno
+- SPI Transfer Error -> 원본 Error를 전달하거나 일관된 negative errno로 정규화
 
-## IRQ/event design
+실제 선택은 구현 후 문서에 확정합니다.
 
-Hard IRQ handler should do the minimum required work. Depending on GPIO semantics, use threaded IRQ or defer processing if SPI transaction/work may sleep.
+## IRQ / Event 설계
 
-Target userspace behavior:
+Hard IRQ Handler에서는 필요한 최소 작업만 수행합니다. GPIO 의미와 SPI 처리 방식에 따라 Sleep 가능한 처리가 필요하면 Threaded IRQ 또는 Deferred Work를 사용합니다.
+
+목표 userspace 동작:
 
 ```text
 poll(fd, ...)
-  sleeps
-STM32 asserts event GPIO
-  kernel handles event
-  wait queue wakes
-poll returns readable/event state
+  대기
+STM32가 Event GPIO Assert
+  Kernel에서 Event 처리
+  Wait Queue Wake-up
+poll()이 반환되고 Event 확인 가능
 ```
 
-## Kernel safety checklist
+## Kernel 안전성 확인 목록
 
-- [ ] no direct dereference of userspace pointers
-- [ ] all UAPI lengths/ranges validated
-- [ ] no unbounded waits
-- [ ] SPI errors checked
-- [ ] sequence/CRC failures observable
-- [ ] module unload path tested repeatedly
-- [ ] blocked readers/pollers handled during removal
-- [ ] fault injection does not panic or deadlock kernel
+- [ ] userspace Pointer를 직접 Dereference하지 않는다.
+- [ ] 모든 UAPI Length와 범위를 검증한다.
+- [ ] 무한 대기가 없다.
+- [ ] SPI Error를 확인한다.
+- [ ] Sequence/CRC 오류를 Log/Counter로 관찰할 수 있다.
+- [ ] Module Unload를 반복해서 검증한다.
+- [ ] `remove()` 중 대기 중인 Reader/Poller를 안전하게 처리한다.
+- [ ] Fault Injection으로 Kernel Panic이나 Deadlock이 발생하지 않는다.

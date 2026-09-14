@@ -1,33 +1,35 @@
-# Current Status
+# 현재 진행 상태
 
-Last updated: 2026-09-14
+마지막 갱신: 2026-09-14
 
-## Current phase
+## 현재 Phase
 
-**Phase 0 — Environment and inventory**
+**Phase 0 — 환경과 장비 확인**
 
-No hardware or software implementation is considered complete yet.
+아직 실제 HW/Firmware/Driver 구현을 완료한 것으로 간주하는 항목은 없습니다.
 
-## Last verified result
+## 마지막으로 확인된 결과
 
-- Repository created: `Parkgod98/rpi5-stm32-linux-driver`
-- Project harness branch created: `chore/project-harness`
-- Architecture and roadmap documents initialized
+- GitHub Repository 생성: `Parkgod98/rpi5-stm32-linux-driver`
+- 프로젝트 개발 하네스와 전체 Roadmap 작성
+- 기존 개인 Repository의 Git 규칙을 반영해 Branch / Commit / PR 규칙 정립
+- 프로젝트 문서는 한글을 기본으로 하고 기술 용어만 필요한 범위에서 영어를 사용하는 기준 정립
+- 현재 작업 PR: `#2 chore: 프로젝트 개발 하네스와 작업 규칙 구축`
 
-## Current blocker / required user input
+## 현재 Blocker / 사용자 확인이 필요한 내용
 
-Before hardware-specific implementation begins, confirm:
+HW 의존 구현을 시작하기 전에 아래를 확인해야 합니다.
 
-1. Exact STM32 board model printed on the board. Expected candidate: `NUCLEO-F103RB`, but do not assume.
-2. Raspberry Pi 5 is available and boots normally.
-3. Available jumper wires and how the STM32 board will be powered/programmed.
-4. Raspberry Pi OS/kernel details from the commands below.
+1. STM32 보드에 인쇄된 정확한 Board Model. 예상 후보는 `NUCLEO-F103RB`지만 실제 확인 전에는 확정하지 않습니다.
+2. Raspberry Pi 5가 준비되어 있고 정상 Boot되는지 확인합니다.
+3. 사용할 Jumper Wire와 STM32 Board의 전원/Programming 방식을 확인합니다.
+4. 아래 명령으로 Raspberry Pi OS / Kernel 환경을 확인합니다.
 
-## Next actions
+## 다음 행동
 
-### On Raspberry Pi 5
+### Raspberry Pi 5
 
-Run and capture:
+아래를 실행하고 출력 전체를 저장합니다.
 
 ```bash
 uname -a
@@ -38,41 +40,39 @@ ls /dev/spidev* 2>/dev/null || true
 lsmod | grep -E 'spi|gpio' || true
 ```
 
-If SPI is not enabled, do not guess the fix from memory; follow the Raspberry Pi OS version in use and document the exact procedure.
+SPI가 아직 활성화되지 않았다면 기억에 의존해 설정하지 않고, 실제 Raspberry Pi OS Version을 기준으로 절차를 확인하고 문서에 남깁니다.
 
-### On STM32 side
+### STM32
 
-- Confirm exact board model with a photo or printed identifier.
-- Confirm STM32CubeIDE (or chosen toolchain) can detect/program the board.
-- Do not configure final SPI pins until the exact board pin mapping is verified.
+- Board 앞면의 모델명 또는 사진으로 정확한 Board를 확인합니다.
+- STM32CubeIDE 또는 선택한 Toolchain에서 Board를 Detect하고 Flash할 수 있는지 확인합니다.
+- 정확한 Board Pin Mapping을 확인하기 전에는 최종 SPI Pin을 정하지 않습니다.
 
-## Evidence collected
+## 현재까지 수집한 Evidence
 
-None yet from physical hardware.
+실물 HW에서 수집한 Evidence는 아직 없습니다.
 
-Future logs should go under:
+향후 Log와 측정 결과는 아래에 저장합니다.
 
 - `results/logs/`
 - `results/latency/`
 - `results/traces/`
 
-## Do NOT start yet
+## 아직 시작하지 않는 작업
 
-Until Phase 0/1 evidence exists, do not:
+Phase 0/1의 실제 Evidence가 생기기 전에는 아래를 시작하지 않습니다.
 
-- write the final Device Tree overlay
-- assume GPIO numbers
-- claim a working kernel driver
-- write portfolio claims as completed work
-- optimize SPI clock rate
-- add IRQ/poll logic
+- 최종 Device Tree Overlay 작성
+- GPIO 번호 추측 또는 확정
+- Kernel Driver가 동작한다고 기록
+- 포트폴리오에 예정 기능을 완료형으로 기록
+- SPI Clock 최적화
+- IRQ / `poll()` 구현
 
-## Resume protocol
+## 중단 후 다시 시작할 때
 
-If this project is resumed after a break:
-
-1. Read this file.
-2. Read `02_ROADMAP.md` for current phase exit criteria.
-3. Inspect the latest merged PR and evidence.
-4. Perform only the next listed actions unless new evidence changes the plan.
-5. Update this file before ending the session.
+1. 이 문서를 먼저 읽습니다.
+2. `02_ROADMAP.md`에서 현재 Phase의 완료 조건을 확인합니다.
+3. 최신으로 Merge된 PR과 Evidence를 확인합니다.
+4. 새로운 Evidence가 계획을 바꾸지 않는 한 이 문서의 다음 행동부터 진행합니다.
+5. 작업을 마치기 전 이 문서를 갱신합니다.

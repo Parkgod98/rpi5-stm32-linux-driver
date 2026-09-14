@@ -1,59 +1,59 @@
-# Hardware Setup
+# HW 구성 및 환경 확인
 
-This file must contain only confirmed hardware facts. Unknown values stay `TBD` until verified.
+이 문서에는 **실제로 확인한 HW 정보만** 기록합니다. 아직 확인하지 않은 값은 추측하지 않고 `TBD`로 유지합니다.
 
-## Inventory
+## 장비 목록
 
-| Item | Value | Verified? |
+| 항목 | 값 | 확인 상태 |
 |---|---|---|
-| Host board | Raspberry Pi 5 | expected, verify physically |
-| Host OS | TBD | no |
-| Kernel | TBD | no |
-| MCU | STM32F103RB | expected, verify physically |
-| STM32 board | TBD | no |
-| Programmer/debugger | TBD | no |
-| Power method | TBD | no |
+| Host Board | Raspberry Pi 5 | 예정, 실물 확인 필요 |
+| Host OS | TBD | 미확인 |
+| Kernel | TBD | 미확인 |
+| MCU | STM32F103RB | 예정, 실물 확인 필요 |
+| STM32 Board | TBD | 미확인 |
+| Programmer / Debugger | TBD | 미확인 |
+| 전원 공급 방식 | TBD | 미확인 |
 
-## Planned connection
+## 예정 연결 구조
 
-Raspberry Pi acts as SPI host. STM32 acts as SPI peripheral.
+Raspberry Pi는 SPI Host, STM32는 SPI Peripheral로 동작합니다.
 
-Required signals:
+필요 Signal:
 
 - MOSI
 - MISO
 - SCLK
 - CS/NSS
 - GND
-- one GPIO from STM32 to Raspberry Pi for READY/EVENT
+- STM32 -> Raspberry Pi 방향 READY/EVENT GPIO 1개
 
-Do not connect power rails between boards until the chosen power method is explicitly verified. Common ground is required for signaling.
+전원 공급 방식을 명확하게 확인하기 전에는 두 보드의 Power Rail을 임의로 연결하지 않습니다. Signal 통신을 위해 공통 GND는 필요합니다.
 
-## Pin mapping
+## Pin Mapping
 
-Fill only after confirming actual board pinouts.
+실제 보드의 Pinout을 확인한 뒤에만 채웁니다.
 
-| Signal | Raspberry Pi 5 | STM32F103RB board | Notes |
+| Signal | Raspberry Pi 5 | STM32F103RB Board | 비고 |
 |---|---|---|---|
 | MOSI | TBD | TBD | |
 | MISO | TBD | TBD | |
 | SCLK | TBD | TBD | |
 | CS/NSS | TBD | TBD | |
 | EVENT/READY | TBD | TBD | STM32 -> Pi |
-| GND | TBD | TBD | common ground |
+| GND | TBD | TBD | 공통 GND |
 
-## SPI configuration
+## SPI 설정
 
-| Parameter | Initial value | Final value |
+| Parameter | 초기 값 | 최종 값 |
 |---|---:|---:|
-| mode | TBD | TBD |
-| bits/word | 8 planned | TBD |
-| clock | conservative, TBD | TBD |
-| CS polarity | TBD | TBD |
+| Mode | TBD | TBD |
+| Bits/Word | 8 예정 | TBD |
+| Clock | 낮은 값부터 시작, TBD | TBD |
+| CS Polarity | TBD | TBD |
 
-## Phase 0 capture
+## Phase 0에서 저장할 환경 정보
 
-Record these outputs verbatim when available:
+아래 명령의 실제 출력은 가능한 한 원문 그대로 기록합니다.
 
 ```bash
 uname -a
@@ -62,28 +62,26 @@ cat /etc/os-release
 ls /dev/spidev* 2>/dev/null || true
 ```
 
-## Bring-up checklist
+## Bring-up 확인 목록
 
-- [ ] Boards identified exactly
-- [ ] Schematics/pinouts checked
-- [ ] Power method confirmed
-- [ ] Common ground connected
-- [ ] SPI enabled on Raspberry Pi
-- [ ] Conservative SPI parameters selected
-- [ ] Known-pattern TX test succeeds
-- [ ] Known-pattern RX test succeeds
-- [ ] Wiring diagram/photo saved
+- [ ] 두 Board의 정확한 모델을 확인했다.
+- [ ] Schematic / Pinout을 확인했다.
+- [ ] 전원 공급 방식을 확인했다.
+- [ ] 공통 GND를 연결했다.
+- [ ] Raspberry Pi에서 SPI를 활성화했다.
+- [ ] 낮은 SPI Clock 등 보수적인 초기 Parameter를 정했다.
+- [ ] Known Pattern TX Test가 성공한다.
+- [ ] Known Pattern RX Test가 성공한다.
+- [ ] 배선 Diagram 또는 사진을 저장했다.
 
-## Hardware debugging order
+## HW 통신 문제 발생 시 확인 순서
 
-When communication fails, check in this order:
+1. 전원과 공통 GND
+2. 실제 Pin Mapping과 배선
+3. SPI Mode와 Clock
+4. CS 동작
+5. STM32 SPI Peripheral 상태
+6. 측정 장비가 있다면 Logic Level Signal 확인
+7. Host Software
 
-1. power and common ground
-2. exact physical pin mapping
-3. SPI mode and clock
-4. CS behavior
-5. STM32 SPI peripheral state
-6. logic-level signal activity if measurement equipment is available
-7. host software
-
-Do not jump directly to kernel-driver debugging before the physical/userspace path is known-good.
+Physical Layer와 userspace 통신이 정상임을 확인하기 전에는 Kernel Driver부터 의심하거나 수정하지 않습니다.
