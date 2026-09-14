@@ -1,107 +1,116 @@
 # AGENTS.md
 
-This repository is designed to be resumed safely after interruptions. Any AI assistant or developer working here must follow these rules.
+이 저장소는 작업을 중단했다가 다시 시작해도 같은 계획선에서 안전하게 이어갈 수 있도록 구성합니다. 이 저장소를 다루는 AI Agent와 개발자는 아래 규칙을 반드시 따릅니다.
 
-## 1. Read before changing anything
+## 1. 작업 전 확인 순서
 
-Always read, in this order:
+변경을 시작하기 전에 반드시 아래 순서로 읽습니다.
 
 1. `docs/CURRENT_STATUS.md`
 2. `docs/02_ROADMAP.md`
-3. The design document relevant to the current phase
-4. Existing code and test results for the current phase
+3. 현재 Phase와 관련된 설계 문서
+4. 현재 Phase의 기존 코드와 테스트 결과
 
-Do not infer progress from the roadmap. `CURRENT_STATUS.md` is the authoritative progress record.
+Roadmap만 보고 진행 상태를 추측하지 않습니다. 실제 진행 상태의 기준 문서는 `CURRENT_STATUS.md`입니다.
 
-## 2. Never claim unverified completion
+## 2. 검증하지 않은 내용을 완료로 처리하지 않기
 
-A feature is DONE only when its documented exit criteria are satisfied with evidence.
+기능은 문서에 정의된 완료 조건을 실제 증거와 함께 만족했을 때만 DONE으로 처리합니다.
 
-Examples:
-- "SPI configured" is not DONE. A repeatable host-to-MCU transaction must succeed.
-- "Driver implemented" is not DONE. The driver must bind, expose the intended interface, and pass the relevant test.
-- "Error handling added" is not DONE. Fault injection must exercise the error path.
+예시:
+- "SPI 설정 완료"만으로는 DONE이 아닙니다. Host와 MCU 사이의 반복 가능한 실제 transaction이 성공해야 합니다.
+- "Driver 구현 완료"만으로는 DONE이 아닙니다. Driver binding, 의도한 interface 노출, 관련 테스트 통과까지 확인해야 합니다.
+- "Error handling 추가"만으로는 DONE이 아닙니다. Fault injection으로 실제 오류 경로를 실행해야 합니다.
 
-Never write README/portfolio claims for work that has not been verified on hardware.
+실제 HW에서 검증되지 않은 내용을 README나 포트폴리오에 완료형으로 기록하지 않습니다.
 
-## 3. One phase at a time
+## 3. 한 번에 하나의 Phase만 진행
 
-Do not skip ahead because later work looks interesting.
+뒤 단계가 흥미롭다는 이유로 현재 단계를 건너뛰지 않습니다.
 
-Required order:
+기본 순서:
 
-`HW bring-up -> userspace SPI -> protocol -> Device Tree -> kernel driver -> userspace interface -> IRQ/event -> robustness -> performance -> documentation`
+`HW Bring-up -> userspace SPI -> Protocol -> Device Tree -> Kernel Driver -> userspace interface -> IRQ/Event -> Robustness -> Performance -> Documentation`
 
-The current phase exit criteria must pass before the next phase starts, unless `CURRENT_STATUS.md` explicitly records an approved exception and reason.
+현재 Phase의 완료 조건을 통과하기 전에는 다음 Phase를 시작하지 않습니다. 예외가 필요하면 `CURRENT_STATUS.md`에 이유와 범위를 명시합니다.
 
-## 4. Separate hardware, firmware, kernel, and application faults
+## 4. HW, Firmware, Kernel, Application 문제를 분리해서 디버깅
 
-Debug from the lowest confirmed layer upward.
+가장 낮은 계층에서 확인된 사실부터 위로 올라갑니다.
 
-Before blaming the kernel driver, verify:
-- power and common ground
-- wiring and pin mapping
-- STM32 firmware state
-- Raspberry Pi SPI availability
-- userspace SPI communication
-- protocol correctness
+Kernel Driver를 의심하기 전에 아래를 먼저 확인합니다.
+- 전원과 공통 GND
+- 실제 배선과 Pin Mapping
+- STM32 Firmware 상태
+- Raspberry Pi의 SPI 사용 가능 여부
+- userspace SPI 통신
+- Protocol 정합성
 
-Do not hide timing bugs with arbitrary `sleep()` calls. If a delay is temporarily used to isolate a fault, document it and remove it before phase completion.
+Timing 문제를 임의의 `sleep()`으로 숨기지 않습니다. 문제 격리를 위해 임시 delay를 사용할 수는 있지만, 이유를 기록하고 Phase 종료 전 제거합니다.
 
-## 5. No guessed hardware values
+## 5. HW 의존 값은 추측하지 않기
 
-Do not guess:
-- GPIO numbers
-- SPI bus/chip-select
-- STM32 alternate-function pins
-- active-high/active-low polarity
-- kernel version-specific APIs
+아래 값은 추측해서 채우지 않습니다.
+- GPIO 번호
+- SPI Bus / Chip Select
+- STM32 Alternate Function Pin
+- Active High / Active Low
+- Kernel 버전에 따라 달라지는 API
 
-Confirm them from the actual board, schematic/manual, OS output, or source tree. Record the confirmed value in `docs/03_HW_SETUP.md`.
+실제 보드, Schematic/Manual, OS 출력 또는 Source Tree에서 확인한 뒤 `docs/03_HW_SETUP.md`에 기록합니다.
 
-## 6. Keep code and documentation synchronized
+## 6. 코드와 문서를 항상 같이 갱신
 
-When a design decision changes, update the relevant document in the same PR.
+설계 결정이 바뀌면 같은 PR에서 관련 문서도 수정합니다.
 
-At the end of every working session update `docs/CURRENT_STATUS.md` with:
-- current phase
-- last verified result
-- current blocker
-- next three actions
-- evidence/log locations
-- things that must NOT be started yet
+매 작업 세션 종료 시 `docs/CURRENT_STATUS.md`에 아래를 갱신합니다.
+- 현재 Phase
+- 마지막으로 검증된 결과
+- 현재 Blocker
+- 다음 행동 3개
+- Evidence / Log 위치
+- 아직 시작하면 안 되는 작업
 
-## 7. Prefer reproducible commands
+## 7. 반복 명령은 재현 가능하게 만들기
 
-Repeated commands belong in `scripts/` or the root `Makefile` rather than chat history.
+반복해서 사용하는 명령은 채팅 기록에만 남기지 않고 `scripts/` 또는 Root `Makefile`로 옮깁니다.
 
-Every build/test procedure must eventually be runnable from a documented command.
+Build/Test 절차는 최종적으로 문서화된 명령 하나로 재현할 수 있어야 합니다.
 
-## 8. Kernel safety rules
+## 8. Kernel 코드 안전 규칙
 
-- Treat kernel code as privileged code.
-- Validate lengths and userspace inputs.
-- Return meaningful negative errno values.
-- Avoid unbounded waits.
-- Protect shared state correctly.
-- Never dereference userspace pointers directly.
-- Keep IRQ handlers minimal; defer work when appropriate.
-- Test unload/reload paths and error paths.
+- Kernel 코드는 Privileged Code로 취급합니다.
+- 길이와 userspace 입력을 검증합니다.
+- 의미 있는 negative errno를 반환합니다.
+- 무한 대기를 만들지 않습니다.
+- Shared State에는 적절한 동기화 수단을 사용합니다.
+- userspace pointer를 직접 dereference하지 않습니다.
+- Hard IRQ Handler에서는 최소한의 작업만 수행하고 필요하면 Threaded IRQ나 Deferred Work를 사용합니다.
+- Module unload/reload와 Error Path를 반복 검증합니다.
 
-## 9. Scope of this project
+## 9. 프로젝트 범위
 
-The goal is a Linux SPI peripheral/protocol driver for a custom STM32F103RB-based device connected to Raspberry Pi 5. We are NOT implementing Raspberry Pi's SPI controller driver from scratch.
+이 프로젝트의 목표는 Raspberry Pi 5에 연결된 STM32F103RB 기반 Device를 위한 **Linux SPI Peripheral/Protocol Driver**를 구현하는 것입니다.
 
-The target stack is:
+Raspberry Pi의 SPI Controller Driver 자체를 새로 만드는 프로젝트가 아닙니다.
 
-`C++ app -> /dev interface -> custom Linux SPI driver -> Linux SPI core/controller -> SPI wires -> STM32F103RB firmware`
+목표 Stack:
 
-with an additional GPIO event line from STM32 to Raspberry Pi for asynchronous events.
+`C++ App -> /dev interface -> Custom Linux SPI Driver -> Linux SPI Core/Controller -> SPI -> STM32F103RB Firmware`
 
-## 10. Portfolio integrity
+비동기 Event 전달을 위해 STM32에서 Raspberry Pi로 연결되는 별도 GPIO Event Line도 사용합니다.
 
-The project should eventually support claims such as:
+## 10. 포트폴리오 정합성
 
-> Raspberry Pi 5 and STM32F103RB were connected through a custom Linux device-driver stack, from Device Tree and kernel-space communication to a C++ userspace application, with robustness and latency verification.
+최종적으로 아래와 같은 설명을 실제 구현과 측정 결과로 뒷받침할 수 있어야 합니다.
 
-Use only the subset that is actually completed and measured.
+> Raspberry Pi 5와 STM32F103RB를 연결하고 Device Tree, Linux SPI Driver, C++ userspace Application까지 직접 구현해 HW가 OS를 거쳐 상위 Application으로 연결되는 전체 흐름을 구성했으며, 오류 상황과 Latency까지 검증했습니다.
+
+위 문장 중 실제로 완료하고 측정한 범위만 사용합니다.
+
+## 11. 문서 언어 규칙
+
+- README, Roadmap, 설계 문서, 작업 로그, PR 본문은 기본적으로 **한글**로 작성합니다.
+- `Device Tree`, `SPI`, `Kernel`, `Driver`, `IRQ`, `poll()`, `CRC`, `UAPI`, `userspace`처럼 기술적으로 영어 표기가 자연스러운 용어는 그대로 사용합니다.
+- 단순한 설명 문장이나 제목을 불필요하게 영어로 작성하지 않습니다.
+- 사용자가 문서를 읽고 설계의 옳고 그름을 직접 판단할 수 있도록, 중요한 결정의 이유와 아직 확정되지 않은 항목을 명확히 구분합니다.

@@ -1,14 +1,14 @@
-# Userspace
+# userspace
 
-Two roles are expected here over the project lifecycle.
+이 디렉터리는 프로젝트 진행 과정에서 두 역할을 담당합니다.
 
-## Phase 2 prototype
+## Phase 2 Prototype
 
-A small `spidev` client validates wiring, SPI configuration, and protocol before any custom kernel driver is introduced.
+Custom Kernel Driver를 만들기 전에 작은 `spidev` Client를 구현해 배선, SPI 설정, 최소 Protocol이 실제 HW에서 정상 동작하는지 검증합니다.
 
-## Final application
+## 최종 Application
 
-`f103ctl` should talk to `/dev/f103bridge` and expose commands such as:
+최종 `f103ctl`은 `/dev/f103bridge`를 통해 Custom Driver와 통신하며 아래와 같은 Command를 제공합니다.
 
 ```text
 f103ctl info
@@ -21,4 +21,4 @@ f103ctl watch
 f103ctl benchmark <count>
 ```
 
-The final userspace app must not depend on kernel-private structures.
+최종 userspace Application은 Kernel 내부 Structure에 직접 의존하지 않습니다.
